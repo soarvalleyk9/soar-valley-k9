@@ -157,7 +157,7 @@ where email = 'soarvalley.k9@outlook.com';
 
 1. Open **Admin → Settings**.
 2. Replace `CHANGE-ME` with the real gate code.
-3. Check the prices. They should all be listed together: 1–2 dogs £12/hour or £6.50/30 minutes; 3–6 dogs £18/hour only (no 30-minute option); 7+ dogs special request with a manual quote. Change them here if that is wrong. You do not need a new deploy.
+3. The rates are already filled in: 1–2 dogs £12/hour or £6.50/30 min; 3–6 dogs £18/hour only (no 30-minute option); 7+ dogs custom price by manual quote. Leave them as they are. You do not need a new deploy.
 4. Save.
 
 If you authorise a booking while the code is still `CHANGE-ME`, the customer is told to phone you instead of being sent a fake code.

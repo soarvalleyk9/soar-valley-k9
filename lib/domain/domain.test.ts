@@ -50,9 +50,9 @@ describe("pricing", () => {
 
   it("lists every price tier together", () => {
     expect(priceTierLines()).toEqual([
-      "1–2 dogs £12/hour or £6.50/30 minutes",
+      "1–2 dogs £12/hour or £6.50/30 min",
       "3–6 dogs £18/hour only (no 30-minute option)",
-      "7+ dogs special request with a manual quote",
+      "7+ dogs custom price by manual quote",
     ]);
   });
 

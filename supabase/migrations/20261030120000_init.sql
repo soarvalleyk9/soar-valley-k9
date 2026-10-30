@@ -77,6 +77,7 @@ create unique index profiles_email_unique on public.profiles (lower(email)) wher
 
 create table public.settings (
   id integer primary key default 1 check (id = 1),
+  -- Final rates: 1–2 dogs £12/hour or £6.50/30 min; 3–6 dogs £18/hour only; 7+ is a manual quote.
   price_1_2_30_pence integer not null default 650 check (price_1_2_30_pence >= 0),
   price_1_2_60_pence integer not null default 1200 check (price_1_2_60_pence >= 0),
   price_3_6_60_pence integer not null default 1800 check (price_3_6_60_pence >= 0),

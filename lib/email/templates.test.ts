@@ -34,9 +34,9 @@ describe("payment emails", () => {
     const blob = `${email.subject}\n${email.html}\n${email.text}`;
     expect(email.html).toContain("Soar Valley K9");
     expect(blob).toContain("£12.00");
-    expect(blob).toContain("1–2 dogs £12/hour or £6.50/30 minutes");
+    expect(blob).toContain("1–2 dogs £12/hour or £6.50/30 min");
     expect(blob).toContain("3–6 dogs £18/hour only (no 30-minute option)");
-    expect(blob).toContain("7+ dogs special request with a manual quote");
+    expect(blob).toContain("7+ dogs custom price by manual quote");
     expect(blob).toContain("SVACDE23");
     expect(blob).toContain("https://checkout.revolut.com/pay/example");
     expect(blob).toContain("revolut-pay-qr-email.png");

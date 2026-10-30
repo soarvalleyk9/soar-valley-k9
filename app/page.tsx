@@ -57,7 +57,7 @@ export default async function HomePage() {
       <section className="stack">
         <h2>Prices</h2>
         <PriceList settings={settings} linked />
-        <p className="muted">Open {formatHours(settings.open_hour, settings.close_hour)}, every day. Prices can be updated by the field.</p>
+        <p className="muted">Open {formatHours(settings.open_hour, settings.close_hour)}, every day.</p>
       </section>
 
       <section className="card stack">
