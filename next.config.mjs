@@ -2,6 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Netlify's Next.js runtime requires .next/standalone. This does not need secrets.
+  output: "standalone",
   eslint: { ignoreDuringBuilds: true },
   images: { unoptimized: true },
   async headers() {

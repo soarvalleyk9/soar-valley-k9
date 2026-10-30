@@ -4,7 +4,6 @@ import { runKeepalive } from "../../lib/jobs/keepalive";
 export default async function handler() {
   const result = await runKeepalive();
   console.log(JSON.stringify(result));
-  return new Response(JSON.stringify(result));
 }
 
 export const config: Config = {
