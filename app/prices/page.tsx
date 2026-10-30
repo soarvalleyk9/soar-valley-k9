@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { formatGbp, formatHours } from "@/lib/format";
+import { PriceList } from "@/components/price-list";
+import { formatHours } from "@/lib/format";
 import { loadPublicSettings } from "@/lib/settings";
 import { SITE } from "@/lib/site";
 
@@ -16,25 +17,7 @@ export default async function PricesPage() {
           Open {formatHours(settings.open_hour, settings.close_hour)}, seven days a week, all year. Times are UK time.
         </p>
       </div>
-      <div className="grid gap-3 sm:grid-cols-3">
-        <article className="card">
-          <h2 className="text-xl">1–2 dogs</h2>
-          <p>{formatGbp(settings.price_1_2_60_pence)} for 60 minutes</p>
-          <p>{formatGbp(settings.price_1_2_30_pence)} for 30 minutes</p>
-        </article>
-        <article className="card">
-          <h2 className="text-xl">3–6 dogs</h2>
-          <p>{formatGbp(settings.price_3_6_60_pence)} for 60 minutes</p>
-          <p>30-minute slots are not available for this group size.</p>
-        </article>
-        <article className="card">
-          <h2 className="text-xl">7 or more dogs</h2>
-          <p>This is a special request. We'll reply with a price and a time.</p>
-          <Link className="btn btn-secondary mt-3" href="/special-request">
-            Ask us
-          </Link>
-        </article>
-      </div>
+      <PriceList settings={settings} linked />
       <section className="card stack">
         <h2>Before you come</h2>
         <ul className="grid list-disc gap-2 pl-5">

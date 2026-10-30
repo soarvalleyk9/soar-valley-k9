@@ -9,6 +9,11 @@ export function formatGbp(pence: number): string {
   }).format(pence / 100);
 }
 
+/** £12.00 becomes £12. £6.50 stays £6.50. */
+export function formatRate(pence: number): string {
+  return formatGbp(pence).replace(/\.00$/, "");
+}
+
 function asDate(value: Date | string): Date {
   return typeof value === "string" ? new Date(value) : value;
 }

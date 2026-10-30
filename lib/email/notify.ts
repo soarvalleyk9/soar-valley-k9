@@ -2,7 +2,7 @@ import QRCode from "qrcode";
 import { isPlaceholderGateCode } from "../domain/codes";
 import type { BookingRow, ProfileRow } from "../types";
 import { customerName } from "../types";
-import { loadGateCode, loadPublicSettings } from "../settings";
+import { loadGateCode, loadPublicSettings, toPriceList } from "../settings";
 import { ownerEmail } from "../site";
 import { pushOwners } from "../push";
 import { sendEmail } from "./send";
@@ -51,16 +51,19 @@ async function qrAttachment(code: string) {
 export async function notifyBookingCreated(booking: BookingRow, profile: ProfileRow) {
   const settings = await loadPublicSettings();
   const visit = toVisit(booking, profile);
+  const prices = toPriceList(settings);
   const customer = paymentRequestEmail({
     visit,
     revolutUrl: settings.revolut_payment_url,
     payPath: `/pay/${booking.reference}`,
+    prices,
   });
   const owner = ownerNewBookingEmail({
     visit,
     mobile: profile.mobile,
     email: profile.email,
     adminPath: `/admin/bookings/${booking.reference}`,
+    prices,
   });
   await Promise.all([
     sendEmail({ ...customer, to: profile.email, template: "payment_request", bookingId: booking.id }),
@@ -75,7 +78,8 @@ export async function notifyBookingCreated(booking: BookingRow, profile: Profile
 
 export async function notifyPaymentClaimed(booking: BookingRow, profile: ProfileRow) {
   const visit = toVisit(booking, profile);
-  const owner = ownerPaymentClaimedEmail({ visit, adminPath: `/admin/authorize` });
+  const prices = toPriceList(await loadPublicSettings());
+  const owner = ownerPaymentClaimedEmail({ visit, adminPath: `/admin/authorize`, prices });
   await Promise.all([
     sendEmail({ ...owner, to: ownerEmail(), template: "owner_payment_claimed", bookingId: booking.id }),
     pushOwners("Customer says paid", `${visit.reference} is waiting to authorise`, "/admin/authorize"),
@@ -85,7 +89,12 @@ export async function notifyPaymentClaimed(booking: BookingRow, profile: Profile
 export async function notifyAuthorized(booking: BookingRow, profile: ProfileRow, gateCode: string) {
   const visit = toVisit(booking, profile);
   const code = booking.check_in_code || "";
-  const email = confirmationEmail({ visit, gateCode, checkInCode: code });
+  const email = confirmationEmail({
+    visit,
+    gateCode,
+    checkInCode: code,
+    prices: toPriceList(await loadPublicSettings()),
+  });
   const attachments = code ? await qrAttachment(code) : undefined;
   await sendEmail({
     ...email,
@@ -118,6 +127,7 @@ export async function notifyBalanceDue(booking: BookingRow, profile: ProfileRow)
     balancePence: booking.amount_due_pence,
     revolutUrl: settings.revolut_payment_url,
     payPath: `/pay/${booking.reference}`,
+    prices: toPriceList(settings),
   });
   await sendEmail({ ...email, to: profile.email, template: "balance_due", bookingId: booking.id });
 }
@@ -140,6 +150,7 @@ export async function notifyOwnerReminder(booking: BookingRow, profile: ProfileR
     visit: toVisit(booking, profile),
     minutes,
     adminPath: `/admin/bookings/${booking.reference}`,
+    prices: toPriceList(await loadPublicSettings()),
   });
   await sendEmail({ ...email, to: ownerEmail(), template: `owner_reminder_${minutes}`, bookingId: booking.id });
 }
@@ -177,7 +188,12 @@ export async function notifyCancellation(
   late: boolean,
   creditPence: number,
 ) {
-  const email = cancellationEmail({ visit: toVisit(booking, profile), late, creditPence });
+  const email = cancellationEmail({
+    visit: toVisit(booking, profile),
+    late,
+    creditPence,
+    prices: toPriceList(await loadPublicSettings()),
+  });
   await sendEmail({ ...email, to: profile.email, template: "cancellation", bookingId: booking.id });
   await sendEmail({
     to: ownerEmail(),

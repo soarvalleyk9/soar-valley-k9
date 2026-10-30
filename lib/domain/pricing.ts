@@ -1,3 +1,5 @@
+import { formatRate } from "../format";
+
 export type PriceList = {
   price12x30: number;
   price12x60: number;
@@ -9,6 +11,15 @@ export const DEFAULT_PRICES: PriceList = {
   price12x60: 1200,
   price36x60: 1800,
 };
+
+/** All three tiers, in order. Never return a single rate on its own. */
+export function priceTierLines(prices: PriceList = DEFAULT_PRICES): [string, string, string] {
+  return [
+    `1–2 dogs ${formatRate(prices.price12x60)}/hour or ${formatRate(prices.price12x30)}/30 minutes`,
+    `3–6 dogs ${formatRate(prices.price36x60)}/hour only (no 30-minute option)`,
+    "7+ dogs special request with a manual quote",
+  ];
+}
 
 export type Quote =
   | { ok: true; pricePence: number; durationMinutes: 30 | 60 }

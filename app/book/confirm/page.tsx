@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createBookingAction } from "@/app/actions/booking";
+import { PriceList } from "@/components/price-list";
 import { SubmitButton } from "@/components/submit-button";
 import { Flash, OpeningSoon } from "@/components/ui";
 import { getSession } from "@/lib/auth";
@@ -47,7 +48,8 @@ export default async function ConfirmPage({
       <p>
         {dogs} {dogs === 1 ? "dog" : "dogs"} · {duration} minutes
       </p>
-      <p>Price {formatGbp(quote.pricePence)}</p>
+      <PriceList settings={settings} />
+      <p>This visit {formatGbp(quote.pricePence)}</p>
       {money.creditAppliedPence > 0 ? <p>Account credit used {formatGbp(money.creditAppliedPence)}</p> : null}
       <p className="text-2xl font-semibold text-heading">To pay {formatGbp(money.amountDuePence)}</p>
       {money.amountDuePence === 0 ? <p>Your credit covers this visit. We still confirm it before emailing the gate code.</p> : null}

@@ -10,7 +10,7 @@ import {
   normalizeCode,
 } from "./codes";
 import { expiryOutcome, isShortNotice, paymentDeadline } from "./deadline";
-import { applyCredit, poundsToPence, quotePrice } from "./pricing";
+import { applyCredit, poundsToPence, priceTierLines, quotePrice } from "./pricing";
 import { generateSlots, zonedDateTime } from "./slots";
 
 const prices = { price12x30: 650, price12x60: 1200, price36x60: 1800 };
@@ -46,6 +46,14 @@ describe("pricing", () => {
     expect(applyCredit(1200, 5000)).toEqual({ creditAppliedPence: 1200, amountDuePence: 0 });
     expect(applyCredit(1200, 0)).toEqual({ creditAppliedPence: 0, amountDuePence: 1200 });
     expect(applyCredit(1200, -100)).toEqual({ creditAppliedPence: 0, amountDuePence: 1200 });
+  });
+
+  it("lists every price tier together", () => {
+    expect(priceTierLines()).toEqual([
+      "1–2 dogs £12/hour or £6.50/30 minutes",
+      "3–6 dogs £18/hour only (no 30-minute option)",
+      "7+ dogs special request with a manual quote",
+    ]);
   });
 
   it("turns pounds into pence", () => {

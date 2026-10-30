@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { formatGbp, formatHours } from "@/lib/format";
+import { PriceList } from "@/components/price-list";
+import { formatHours } from "@/lib/format";
 import { loadPublicSettings } from "@/lib/settings";
 import { SITE } from "@/lib/site";
 
@@ -55,27 +56,7 @@ export default async function HomePage() {
 
       <section className="stack">
         <h2>Prices</h2>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <article className="card">
-            <h3 className="text-xl">1–2 dogs</h3>
-            <p className="text-2xl font-semibold text-heading">{formatGbp(settings.price_1_2_60_pence)}</p>
-            <p>60 minutes</p>
-            <p className="mt-2 text-lg font-semibold text-heading">{formatGbp(settings.price_1_2_30_pence)}</p>
-            <p>30 minutes</p>
-          </article>
-          <article className="card">
-            <h3 className="text-xl">3–6 dogs</h3>
-            <p className="text-2xl font-semibold text-heading">{formatGbp(settings.price_3_6_60_pence)}</p>
-            <p>60 minutes only</p>
-          </article>
-          <article className="card">
-            <h3 className="text-xl">7 or more</h3>
-            <p>Tell us what you need and we'll quote a time and a price.</p>
-            <Link className="btn btn-quiet mt-3" href="/special-request">
-              Special request
-            </Link>
-          </article>
-        </div>
+        <PriceList settings={settings} linked />
         <p className="muted">Open {formatHours(settings.open_hour, settings.close_hour)}, every day. Prices can be updated by the field.</p>
       </section>
 

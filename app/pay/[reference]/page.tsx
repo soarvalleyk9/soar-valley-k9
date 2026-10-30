@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import QRCode from "qrcode";
 import { claimPaymentAction } from "@/app/actions/booking";
+import { PriceList } from "@/components/price-list";
 import { SubmitButton } from "@/components/submit-button";
 import { Flash, OpeningSoon } from "@/components/ui";
 import { getSession } from "@/lib/auth";
@@ -48,8 +49,9 @@ export default async function PayPage({
       <p>
         {booking.dog_count} dogs · {booking.duration_minutes} minutes
       </p>
+      <PriceList settings={settings} />
       <p>
-        Price {formatGbp(booking.price_pence)}
+        This visit {formatGbp(booking.price_pence)}
         {booking.credit_applied_pence > 0 ? ` · credit ${formatGbp(booking.credit_applied_pence)}` : ""}
       </p>
       <p className="text-3xl font-semibold text-heading">To pay {formatGbp(booking.amount_due_pence)}</p>

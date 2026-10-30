@@ -4,6 +4,12 @@ Booking site for Soar Valley K9 Secluded Retreat, a private secure dog field on 
 
 Customers make an account, upload vaccination records, and book a single slot. They pay with a Revolut link. The gate code and a check-in code are emailed **only after** the owner taps Authorise.
 
+Starting prices (change all three together in admin settings):
+
+- 1–2 dogs £12/hour or £6.50/30 minutes
+- 3–6 dogs £18/hour only (no 30-minute option)
+- 7+ dogs special request with a manual quote
+
 The site is a Next.js app and deploys on Netlify. Accounts, bookings and vaccination photos live in Supabase. Email is sent with Resend.
 
 Public pages (home, prices, find us, terms, privacy) work before any accounts are connected. Booking, account and admin pages show “Online booking opening soon” until the environment variables are set and the site is rebuilt.

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { addLondonDays, generateSlots, zonedDateTime } from "@/lib/domain/slots";
-import { formatGbp, formatTime, londonTodayISO } from "@/lib/format";
+import { PriceList } from "@/components/price-list";
+import { formatTime, londonTodayISO } from "@/lib/format";
 import { loadPublicSettings } from "@/lib/settings";
 import { ACTIVE_BOOKING_STATUSES } from "@/lib/site";
 import { isBookingLive, tryServiceClient } from "@/lib/supabase/admin";
@@ -58,6 +59,7 @@ export default async function BookPage({
         <h1>Book a visit</h1>
         <p>One group at a time. Choose how many dogs, then a time.</p>
       </div>
+      <PriceList settings={settings} linked />
       <Flash error={params.error} />
       {!session ? (
         <section className="card stack">
@@ -87,16 +89,12 @@ export default async function BookPage({
           {dogs <= 2 ? (
             <Link className={`choice ${duration === 30 ? "is-on" : ""}`} href={href({ dogs, duration: 30, date: safeDate })}>
               30 min
-              <span className="block text-sm font-normal">{formatGbp(settings.price_1_2_30_pence)}</span>
             </Link>
           ) : (
             <p className="choice opacity-60">30 min not available for 3–6 dogs</p>
           )}
           <Link className={`choice ${duration === 60 ? "is-on" : ""}`} href={href({ dogs, duration: 60, date: safeDate })}>
             60 min
-            <span className="block text-sm font-normal">
-              {formatGbp(dogs >= 3 ? settings.price_3_6_60_pence : settings.price_1_2_60_pence)}
-            </span>
           </Link>
         </div>
       </section>

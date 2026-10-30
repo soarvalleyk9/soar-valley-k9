@@ -1,5 +1,6 @@
 import { formatGbp, formatSlot, formatWhen } from "../format";
 import { isPlaceholderGateCode } from "../domain/codes";
+import { DEFAULT_PRICES, priceTierLines, type PriceList } from "../domain/pricing";
 import { SITE, siteUrl } from "../site";
 import { bigCode, button, emailShell, esc, lines } from "./render";
 
@@ -21,9 +22,19 @@ function visitRows(visit: Visit): Array<[string, string]> {
     ["When", formatSlot(visit.startsAt, visit.endsAt)],
     ["Length", `${visit.durationMinutes} minutes`],
     ["Dogs", String(visit.dogCount)],
-    ["Price", formatGbp(visit.pricePence)],
+    ["This visit", formatGbp(visit.pricePence)],
     ["Reference", visit.reference],
   ];
+}
+
+function ratesHtml(prices: PriceList = DEFAULT_PRICES): string {
+  return `<ul style="margin:8px 0 16px;padding-left:18px;font-size:16px;line-height:1.5;">${priceTierLines(prices)
+    .map((line) => `<li>${esc(line)}</li>`)
+    .join("")}</ul>`;
+}
+
+function ratesText(prices: PriceList = DEFAULT_PRICES): string {
+  return ["Prices:", ...priceTierLines(prices).map((line) => `- ${line}`)].join("\n");
 }
 
 export function paymentRequestEmail(input: {
@@ -31,6 +42,7 @@ export function paymentRequestEmail(input: {
   revolutUrl: string;
   payPath: string;
   site?: string;
+  prices?: PriceList;
 }): Email {
   const base = input.site ?? siteUrl();
   const payUrl = `${base}${input.payPath}`;
@@ -59,16 +71,17 @@ export function paymentRequestEmail(input: {
     heading,
     intro,
     site: base,
-    bodyHtml: `${lines(visitRows(input.visit))}${paymentBlock}`,
+    bodyHtml: `${ratesHtml(input.prices)}${lines(visitRows(input.visit))}${paymentBlock}`,
   });
   const text = [
     heading,
     "",
     intro,
+    ratesText(input.prices),
     `When: ${formatSlot(input.visit.startsAt, input.visit.endsAt)}`,
     `Length: ${input.visit.durationMinutes} minutes`,
     `Dogs: ${input.visit.dogCount}`,
-    `Price: ${formatGbp(input.visit.pricePence)}`,
+    `This visit: ${formatGbp(input.visit.pricePence)}`,
     `Reference: ${input.visit.reference}`,
     `To pay: ${formatGbp(due)}`,
     due > 0 ? `Pay with Revolut: ${input.revolutUrl}` : "No bank payment is needed.",
@@ -91,6 +104,7 @@ export function balanceDueEmail(input: {
   revolutUrl: string;
   payPath: string;
   site?: string;
+  prices?: PriceList;
 }): Email {
   const base = input.site ?? siteUrl();
   const payUrl = `${base}${input.payPath}`;
@@ -98,7 +112,7 @@ export function balanceDueEmail(input: {
     heading: "Soar Valley K9",
     intro: "We received part of the payment. Please pay the remaining balance.",
     site: base,
-    bodyHtml: `${lines([
+    bodyHtml: `${ratesHtml(input.prices)}${lines([
       ["Still to pay", formatGbp(input.balancePence)],
       ["Reference", input.visit.reference],
       ["When", formatSlot(input.visit.startsAt, input.visit.endsAt)],
@@ -110,18 +124,18 @@ export function balanceDueEmail(input: {
   return {
     subject: `Balance due for ${input.visit.reference}`,
     html: shell.html,
-    text: `Soar Valley K9\n\nStill to pay: ${formatGbp(input.balancePence)}\nReference: ${input.visit.reference}\nPay: ${input.revolutUrl}\n${payUrl}${shell.textFooter}`,
+    text: `Soar Valley K9\n\n${ratesText(input.prices)}\nStill to pay: ${formatGbp(input.balancePence)}\nReference: ${input.visit.reference}\nPay: ${input.revolutUrl}\n${payUrl}${shell.textFooter}`,
   };
 }
 
-export function ownerNewBookingEmail(input: { visit: Visit; mobile: string; email: string; adminPath: string; site?: string }): Email {
+export function ownerNewBookingEmail(input: { visit: Visit; mobile: string; email: string; adminPath: string; site?: string; prices?: PriceList }): Email {
   const base = input.site ?? siteUrl();
   const url = `${base}${input.adminPath}`;
   const shell = emailShell({
     heading: "New booking",
     intro: `${input.visit.customerName} has booked and the slot is held.`,
     site: base,
-    bodyHtml: `${lines([
+    bodyHtml: `${ratesHtml(input.prices)}${lines([
       ...visitRows(input.visit),
       ["To pay", formatGbp(input.visit.amountDuePence)],
       ["Mobile", input.mobile],
@@ -131,18 +145,18 @@ export function ownerNewBookingEmail(input: { visit: Visit; mobile: string; emai
   return {
     subject: `New booking ${input.visit.reference} — ${formatWhen(input.visit.startsAt)}`,
     html: shell.html,
-    text: `New booking ${input.visit.reference}\n${input.visit.customerName}\n${formatSlot(input.visit.startsAt, input.visit.endsAt)}\n${input.visit.dogCount} dogs\nTo pay ${formatGbp(input.visit.amountDuePence)}\n${input.mobile}\n${input.email}\n${url}${shell.textFooter}`,
+    text: `New booking ${input.visit.reference}\n${ratesText(input.prices)}\n${input.visit.customerName}\n${formatSlot(input.visit.startsAt, input.visit.endsAt)}\n${input.visit.dogCount} dogs\nTo pay ${formatGbp(input.visit.amountDuePence)}\n${input.mobile}\n${input.email}\n${url}${shell.textFooter}`,
   };
 }
 
-export function ownerPaymentClaimedEmail(input: { visit: Visit; adminPath: string; site?: string }): Email {
+export function ownerPaymentClaimedEmail(input: { visit: Visit; adminPath: string; site?: string; prices?: PriceList }): Email {
   const base = input.site ?? siteUrl();
   const url = `${base}${input.adminPath}`;
   const shell = emailShell({
     heading: "Customer says paid",
     intro: `${input.visit.customerName} says they have paid. Check Revolut, then tap Authorise. The gate code is not sent until you do.`,
     site: base,
-    bodyHtml: `${lines([
+    bodyHtml: `${ratesHtml(input.prices)}${lines([
       ["Amount", formatGbp(input.visit.amountDuePence)],
       ["Reference", input.visit.reference],
       ["When", formatSlot(input.visit.startsAt, input.visit.endsAt)],
@@ -152,7 +166,7 @@ export function ownerPaymentClaimedEmail(input: { visit: Visit; adminPath: strin
   return {
     subject: `Customer says paid — ${input.visit.reference} — ${formatGbp(input.visit.amountDuePence)}`,
     html: shell.html,
-    text: `Customer says paid\n${input.visit.reference}\n${formatGbp(input.visit.amountDuePence)}\n${input.visit.customerName}\n${formatSlot(input.visit.startsAt, input.visit.endsAt)}\nAuthorise: ${url}${shell.textFooter}`,
+    text: `Customer says paid\n${ratesText(input.prices)}\n${input.visit.reference}\n${formatGbp(input.visit.amountDuePence)}\n${input.visit.customerName}\n${formatSlot(input.visit.startsAt, input.visit.endsAt)}\nAuthorise: ${url}${shell.textFooter}`,
   };
 }
 
@@ -161,6 +175,7 @@ export function ownerReminderEmail(input: {
   minutes: 20 | 40;
   adminPath: string;
   site?: string;
+  prices?: PriceList;
 }): Email {
   const base = input.site ?? siteUrl();
   const url = `${base}${input.adminPath}`;
@@ -168,7 +183,7 @@ export function ownerReminderEmail(input: {
     heading: "Short-notice booking still open",
     intro: `This booking was made ${input.minutes} minutes ago and is still not authorised.`,
     site: base,
-    bodyHtml: `${lines([
+    bodyHtml: `${ratesHtml(input.prices)}${lines([
       ["Reference", input.visit.reference],
       ["Customer", input.visit.customerName],
       ["When", formatSlot(input.visit.startsAt, input.visit.endsAt)],
@@ -178,7 +193,7 @@ export function ownerReminderEmail(input: {
   return {
     subject: `Reminder: ${input.visit.reference} still needs authorising`,
     html: shell.html,
-    text: `Short-notice reminder (${input.minutes} min)\n${input.visit.reference}\n${input.visit.customerName}\n${formatSlot(input.visit.startsAt, input.visit.endsAt)}\n${url}${shell.textFooter}`,
+    text: `Short-notice reminder (${input.minutes} min)\n${ratesText(input.prices)}\n${input.visit.reference}\n${input.visit.customerName}\n${formatSlot(input.visit.startsAt, input.visit.endsAt)}\n${url}${shell.textFooter}`,
   };
 }
 
@@ -220,13 +235,14 @@ export function confirmationEmail(input: {
   gateCode: string;
   checkInCode: string;
   site?: string;
+  prices?: PriceList;
 }): Email {
   const gate = gateBlock(input.gateCode);
   const shell = emailShell({
     heading: "Soar Valley K9",
     intro: "Your visit is confirmed. Bring this email with you.",
     site: input.site,
-    bodyHtml: `${lines(visitRows(input.visit))}
+    bodyHtml: `${ratesHtml(input.prices)}${lines(visitRows(input.visit))}
       ${gate.html}
       ${bigCode("Check-in code", input.checkInCode)}
       <img src="cid:checkin-qr" alt="QR code for your check-in code" width="220" style="display:block;width:220px;height:auto;margin:8px 0 16px;">
@@ -235,7 +251,7 @@ export function confirmationEmail(input: {
   return {
     subject: `Confirmed: Soar Valley K9 — ${formatSlot(input.visit.startsAt, input.visit.endsAt)}`,
     html: shell.html,
-    text: `Your visit is confirmed\n${formatSlot(input.visit.startsAt, input.visit.endsAt)}\n${input.visit.durationMinutes} minutes, ${input.visit.dogCount} dogs\nPrice ${formatGbp(input.visit.pricePence)}\nReference ${input.visit.reference}\n${gate.text}\nCheck-in code: ${input.checkInCode}\n${shell.textFooter}`,
+    text: `Your visit is confirmed\n${ratesText(input.prices)}\n${formatSlot(input.visit.startsAt, input.visit.endsAt)}\n${input.visit.durationMinutes} minutes, ${input.visit.dogCount} dogs\nThis visit: ${formatGbp(input.visit.pricePence)}\nReference ${input.visit.reference}\n${gate.text}\nCheck-in code: ${input.checkInCode}\n${shell.textFooter}`,
   };
 }
 
@@ -317,6 +333,7 @@ export function cancellationEmail(input: {
   late: boolean;
   creditPence: number;
   site?: string;
+  prices?: PriceList;
 }): Email {
   const base = input.site ?? siteUrl();
   const intro = input.late
@@ -328,7 +345,7 @@ export function cancellationEmail(input: {
     heading: input.late ? "Late cancellation" : "Booking cancelled",
     intro,
     site: base,
-    bodyHtml: `${lines([
+    bodyHtml: `${ratesHtml(input.prices)}${lines([
       ["Reference", input.visit.reference],
       ["When", formatSlot(input.visit.startsAt, input.visit.endsAt)],
       ["Credit added", formatGbp(input.creditPence)],
@@ -339,7 +356,7 @@ export function cancellationEmail(input: {
       ? `Late cancellation ${input.visit.reference}`
       : `Cancelled ${input.visit.reference}`,
     html: shell.html,
-    text: `${intro}\n${input.visit.reference}\nCredit added: ${formatGbp(input.creditPence)}${shell.textFooter}`,
+    text: `${intro}\n${ratesText(input.prices)}\n${input.visit.reference}\nCredit added: ${formatGbp(input.creditPence)}${shell.textFooter}`,
   };
 }
 
